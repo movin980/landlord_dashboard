@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Small-Plot Landlord AI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.8em;
+            font-weight: 600;
+            background: rgba(0,0,0,0.2);
+        }
+
+        main {
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        form {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 10px;
+        }
+
+        form input, form button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+
+        form button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        form button:hover {
+            background: #2563eb;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            background: white;
+            color: black;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #3b82f6;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+<body>
+    <header>🏠 Small-Plot Landlord AI</header>
+
+    <main>
+        <!-- Add Tenant Form -->
+        <form id="tenantForm">
+            <input type="text" id="name" placeholder="Tenant Name" required>
+            <input type="text" id="house_number" placeholder="House Number" required>
+            <input type="number" id="rent_amount" placeholder="Rent Amount" required>
+            <input type="text" id="phone_number" placeholder="Phone Number" required>
+            <input type="date" id="due_date" required>
+            <button type="submit">Add Tenant</button>
+        </form>
+
+        <!-- Tenant Table -->
+        <table id="tenantTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>House</th>
+                    <th>Rent</th>
+                    <th>Phone</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </main>
+
+    <script>
+        // Your Firebase Config (replace with your Firebase values)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Add Tenant
+        document.getElementById("tenantForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const tenant = {
+                name: document.getElementById("name").value,
+                house_number: document.getElementById("house_number").value,
+                rent_amount: parseFloat(document.getElementById("rent_amount").value),
+                phone_number: document.getElementById("phone_number").value,
+                due_date: document.getElementById("due_date").value,
+                status: "Unpaid"
+            };
+
+            await db.collection("tenants").add(tenant);
+
+            alert("✅ Tenant added!");
+            document.getElementById("tenantForm").reset();
+            loadTenants();
+        });
+
+        // Load Tenants
+        async function loadTenants() {
+            const tableBody = document.querySelector("#tenantTable tbody");
+            tableBody.innerHTML = "";
+
+            const snapshot = await db.collection("tenants").get();
+            snapshot.forEach(doc => {
+                const t = doc.data();
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${t.name}</td>
+                        <td>${t.house_number}</td>
+                        <td>${t.rent_amount}</td>
+                        <td>${t.phone_number}</td>
+                        <td>${t.due_date}</td>
+                        <td>${t.status}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        loadTenants();
+    </script>
+</body>
+</html>
+v
