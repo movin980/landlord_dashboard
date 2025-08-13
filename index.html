@@ -112,11 +112,11 @@
     </table>
   </main>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <!-- Firebase Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  <script>
     // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCozdGGtbY5VQeDxSs8Vo5IqX5nqTAEVcw",
@@ -129,8 +129,8 @@
     };
 
     // Init Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
     const tenantForm = document.getElementById('tenantForm');
     const tenantList = document.getElementById('tenantList');
@@ -138,7 +138,7 @@
     // Add tenant
     tenantForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      await db.collection("tenants").add({
+      await addDoc(collection(db, "tenants"), {
         name: document.getElementById('name').value,
         house_number: document.getElementById('house_number').value,
         rent_amount: Number(document.getElementById('rent_amount').value),
@@ -150,13 +150,13 @@
       loadTenants();
     });
 
-    // Load tenants & check deadlines
+    // Load tenants
     async function loadTenants() {
       tenantList.innerHTML = "";
-      const snapshot = await db.collection("tenants").get();
+      const querySnapshot = await getDocs(collection(db, "tenants"));
       const today = new Date();
 
-      snapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         const t = doc.data();
         const dueDate = new Date(t.due_date);
         let reminder = "";
@@ -164,7 +164,6 @@
 
         if (t.status.toLowerCase() === "unpaid") {
           const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-
           if (diffDays < 0) {
             reminder = "⚠ Overdue!";
             rowClass = "overdue";
